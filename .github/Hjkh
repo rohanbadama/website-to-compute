@@ -1,0 +1,173 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Tap for Love — Romantic Tap Page</title>
+  <style>
+    :root{
+      --bg1: #0f172a; --bg2:#0b3d2e; --accent:#ff6b81; --text:#fff;
+    }
+    html,body{height:100%;margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,'Helvetica Neue',Arial}
+    .wrap{height:100%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--bg1),var(--bg2));transition:background 1s ease;overflow:hidden;position:relative}
+    .hearts{pointer-events:none;position:absolute;inset:0}
+    .heart{position:absolute;width:14px;height:14px;transform:translate(-50%,-50%) rotate(45deg);background:var(--accent);border-radius:2px;opacity:0.9;animation:float 6s linear infinite}
+    .heart:before,.heart:after{content:"";position:absolute;width:14px;height:14px;background:var(--accent);border-radius:50%}
+    .heart:before{top:-7px;left:0}
+    .heart:after{left:7px;top:0}
+    @keyframes float{0%{transform:translate(-50%,-50%) translateY(30vh) scale(0.9) rotate(45deg) ;opacity:0}10%{opacity:1}100%{transform:translate(-50%,-50%) translateY(-40vh) scale(1.1) rotate(45deg);opacity:0}}
+    .card{width:min(860px,94vw);max-width:860px;height:76vh;background:rgba(255,255,255,0.035);backdrop-filter:blur(6px);border-radius:20px;box-shadow:0 10px 30px rgba(2,6,23,0.6);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px;position:relative;overflow:hidden}
+    .title3d{font-weight:800;font-size:48px;letter-spacing:1px;line-height:1;user-select:none;-webkit-user-select:none;cursor:pointer;transform-style:preserve-3d;transition:transform 0.35s cubic-bezier(.2,.8,.2,1)}
+    .title3d:active{transform:translateZ(-8px) scale(0.99)}
+    .sub{margin-top:12px;font-size:16px;color:rgba(255,255,255,0.85)}
+    .message{margin-top:28px;max-width:820px;text-align:center;font-size:20px;color:var(--text);opacity:0;transform:translateY(18px);transition:all 450ms ease;line-height:1.5}
+    .message.show{opacity:1;transform:translateY(0)}
+    .message.hide{opacity:0;transform:translateY(-18px)}
+    .controls{position:absolute;right:18px;top:18px;display:flex;gap:10px}
+    .btn{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.06);padding:8px 12px;border-radius:10px;color:var(--text);font-weight:600;backdrop-filter:blur(4px);cursor:pointer}
+    .progress{position:absolute;left:18px;top:18px;color:rgba(255,255,255,0.7);font-weight:600}
+    .pulse{display:inline-block;margin-left:8px;transform-origin:center;animation:pulse 1.6s infinite}
+    @keyframes pulse{0%{transform:scale(1)}50%{transform:scale(1.12)}100%{transform:scale(1)}}
+    .theme-0{--bg1:#071428;--bg2:#0b2340;--accent:#ff6b81}
+    .theme-1{--bg1:#0b1f15;--bg2:#16391e;--accent:#ffb86b}
+    .theme-2{--bg1:#2b0630;--bg2:#3b1045;--accent:#ff7ab6}
+    .theme-3{--bg1:#1a0b1f;--bg2:#2b1a36;--accent:#8be7ff}
+    .theme-4{--bg1:#001b1f;--bg2:#00373b;--accent:#7cffb2}
+    .theme-5{--bg1:#1b0727;--bg2:#2c153b;--accent:#ffd36b}
+    .theme-6{--bg1:#07121c;--bg2:#0b2f2b;--accent:#ff9db8}
+    .theme-7{--bg1:#0b1226;--bg2:#10203a;--accent:#c7a7ff}
+    .theme-8{--bg1:#2b0a0a;--bg2:#3a1515;--accent:#ffa07a}
+    .theme-9{--bg1:#050816;--bg2:#08102b;--accent:#9af0ff}
+    @media (max-width:600px){.title3d{font-size:30px}.message{font-size:18px;padding:0 10px}}
+    .title3d span{display:inline-block;position:relative}
+    .title3d .layer{position:absolute;left:0;top:0;transform:translateZ(-10px);filter:blur(.6px);opacity:0.85}
+  </style>
+</head>
+<body>
+  <div class="wrap theme-0" id="wrap">
+    <div class="hearts" id="hearts"></div>
+    <div class="card" id="card">
+      <div style="display:flex;align-items:center;gap:14px">
+        <div class="title3d" id="title">
+          <span id="titleText">Tap to Open ❤️</span>
+        </div>
+      </div>
+      <div class="sub">Tap the 3D text once for next line — each tap advances, previous fades away</div>
+      <div class="message" id="message"></div>
+      <div class="controls">
+        <button class="btn" id="playPause">Play ♪</button>
+        <button class="btn" id="restart">Restart ↺</button>
+      </div>
+      <div class="progress" id="progress">1 / 10 <span class="pulse">•</span></div>
+    </div>
+  </div>  <!-- autoplay soft romantic audio -->  <audio id="bgMusic" loop autoplay>
+    <source src="https://cdn.pixabay.com/download/audio/2025/06/23/audio_363709.mp3?filename=love-romantic-hopeful-background-music-363709.mp3" type="audio/mpeg">
+    Your browser does not support the audio element.
+  </audio>  <script>
+    const slides = [
+      {title: '1. Why She\'s Special to You', text:`“You’re not just another person in my life… you’re the one who feels meant for me.\nSomething in you fits perfectly in places I didn’t even know were empty.”`},
+      {title: '2. Why She\'s Important', text:`“You matter to me in ways I can’t replace.\nMy day feels incomplete if even a single moment passes without you in it.”`},
+      {title: '3. Why Only She Stands Out', text:`“Other people exist, but you stand out without trying.\nYour presence has a purity and peace no one else carries.”`},
+      {title: '4. Why You Love Only Her', text:`“My heart chose you without hesitation, without confusion.\nIt’s not a decision… it’s a feeling that keeps pulling me back to you.”`},
+      {title: '5. Why You Imagine a Life With Her', text:`“When I think of the future, your name naturally appears in it.\nNot because I forced it… but because loving you feels like the right place to stay.”`},
+      {title: '6. Why She\'s Your Everything', text:`“I don’t need a thousand people around me — just you.\nYou’re the peace, the comfort, the smile, and the home my heart returns to.”`},
+      {title: '7. Why Your Love Never Decreases', text:`“My love for you doesn’t fade with time… it deepens.\nThe more I know you, the more reasons my heart finds to stay.”`},
+      {title: '8. Why You Love Her As She Is', text:`“I adore you exactly the way you are — every flaw, every softness.\nYou don’t need to change; you’re already everything I prayed for quietly.”`},
+      {title: '9. Why You Feel Safe With Her', text:`“You’re the only person who gets my silence, my chaos, and my softness.\nWith you, even my unspoken emotions feel understood.”`},
+      {title: '10. Why She\'s Enough for You', text:`“I don’t look for anyone else because my heart doesn’t wander.\nIt has already found its place — and that place is you.”`},
+    ];
+
+    const wrap = document.getElementById('wrap');
+    const titleText = document.getElementById('titleText');
+    const messageEl = document.getElementById('message');
+    const progress = document.getElementById('progress');
+    const bgMusic = document.getElementById('bgMusic');
+    const playPause = document.getElementById('playPause');
+    const restart = document.getElementById('restart');
+    const hearts = document.getElementById('hearts');
+
+    let idx = 0;
+    let playing = true;
+
+    function buildHearts(){
+      hearts.innerHTML='';
+      for(let i=0;i<12;i++){
+        const h=document.createElement('div');h.className='heart';
+        h.style.left = (10 + Math.random()*80) + '%';
+        h.style.top = (60 + Math.random()*30) + '%';
+        h.style.animationDuration = (5 + Math.random()*6) + 's';
+        h.style.transform = `translate(-50%,-50%) rotate(45deg) scale(${0.7+Math.random()*0.8})`;
+        hearts.appendChild(h);
+      }
+    }
+    buildHearts();
+
+    function showSlide(i){
+      if(i<0) i=0; if(i>=slides.length) i=slides.length-1;
+      idx = i;
+      wrap.className = 'wrap theme-' + (i % 10);
+      titleText.textContent = slides[i].title;
+      messageEl.classList.remove('show');
+      messageEl.classList.add('hide');
+      setTimeout(()=>{
+        messageEl.innerHTML = slides[i].text.replace(/\n/g,'<br><br>');
+        messageEl.classList.remove('hide');
+        messageEl.classList.add('show');
+      },220);
+      progress.innerHTML = `${i+1} / ${slides.length} <span class="pulse">•</span>`;
+      buildHearts();
+    }
+
+    showSlide(0);
+
+    document.getElementById('title').addEventListener('click', ()=>{
+      if(idx < slides.length-1){ showSlide(idx+1); } else {
+        titleText.textContent = 'Finished ❤️';
+        messageEl.classList.remove('show');
+        messageEl.classList.add('hide');
+        setTimeout(()=>{
+          messageEl.innerHTML = 'All lines read — press restart to view again.';
+          messageEl.classList.remove('hide');
+          messageEl.classList.add('show');
+        },220);
+      }
+    });
+
+    let touchStartX=null;
+    document.addEventListener('touchstart', (e)=>{touchStartX = e.changedTouches[0].clientX;});
+    document.addEventListener('touchend', (e)=>{
+      if(touchStartX===null) return;
+      const diff = e.changedTouches[0].clientX - touchStartX;
+      if(diff < -40) { if(idx < slides.length-1) showSlide(idx+1);} 
+      if(diff > 40) { if(idx>0) showSlide(idx-1);} 
+      touchStartX=null;
+    });
+
+    playPause.addEventListener('click', ()=>{
+      if(!playing){ bgMusic.play(); playing=true; playPause.textContent='Pause ♪'; }
+      else { bgMusic.pause(); playing=false; playPause.textContent='Play ♪'; }
+    });
+
+    restart.addEventListener('click', ()=>{ showSlide(0); titleText.textContent = 'Tap to Open ❤️'; });
+
+    function ensurePlayOnFirstGesture(){
+      const handler = ()=>{ if(!playing){ bgMusic.play().catch(()=>{}); playing=true; playPause.textContent='Pause ♪'; } document.removeEventListener('click', handler); }
+      document.addEventListener('click', handler);
+    }
+    ensurePlayOnFirstGesture();
+
+    (function addLayerEffect(){
+      const title = document.getElementById('title');
+      const span = title.querySelector('span');
+      for(let j=0;j<6;j++){
+        const layer = document.createElement('span'); layer.className='layer'; layer.style.zIndex = -j; layer.style.left='0'; layer.style.top='0'; layer.style.transform = `translate3d(${j*-1.8}px,${j*-1.2}px,${-j*8}px) scale(${1 - j*0.02})`; layer.textContent = span.textContent;
+        title.appendChild(layer);
+      }
+      const obs = new MutationObserver(()=>{ const text = span.textContent; title.querySelectorAll('.layer').forEach(l=>l.textContent = text); });
+      obs.observe(span,{childList:true,characterData:true,subtree:true});
+    })();
+
+    document.addEventListener('keydown', (e)=>{ if(e.key==='ArrowRight') { if(idx < slides.length-1) showSlide(idx+1);} if(e.key==='ArrowLeft'){ if(idx>0) showSlide(idx-1);} });
+  </script></body>
+</html>
